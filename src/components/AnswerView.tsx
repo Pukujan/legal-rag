@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { AnswerSentence, FinalAnswer } from "@shared/types";
 import { SUPPORT_LABEL, SUPPORT_WORD, percent, supportFor } from "@/lib/labels";
-import { rawValue } from "@/lib/render";
+import { provenanceLine, rawValue } from "@/lib/render";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -308,7 +308,7 @@ export default function AnswerView({ answer, hoveredId, onHoverCase, onOpenCase 
                 {c.provenance?.length ? (
                   <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-ink-dim">
                     {c.provenance.map((note, i) => (
-                      <li key={i}>{note}</li>
+                      <li key={i}>{provenanceLine(note)}</li>
                     ))}
                   </ul>
                 ) : (

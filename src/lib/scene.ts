@@ -151,7 +151,8 @@ export class SceneGraph {
     return created;
   }
 
-  applyStage(stage: StageEvent, now = Date.now()): void {
+  /** `now` is the canvas frame clock. Date.now() never lines up with it, so every point stays invisible. */
+  applyStage(stage: StageEvent, now = performance.now()): void {
     if (stage.skipped) {
       this.touch();
       return;
@@ -213,7 +214,7 @@ export class SceneGraph {
     }
   }
 
-  applyResults(results: RetrievalResult[], now = Date.now()): void {
+  applyResults(results: RetrievalResult[], now = performance.now()): void {
     for (const result of results) {
       const node = this.node(String(result.case?.id ?? ""), now);
       if (!node) continue;

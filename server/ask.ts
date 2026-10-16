@@ -140,9 +140,15 @@ export async function handleAsk(req: IncomingMessage, res: ServerResponse): Prom
       ...extra,
     });
 
+    const pulse = (): (() => void) => {
+      const timer = setInterval(() => sse.comment("wait"), 10000);
+      return () => clearInterval(timer);
+    };
+
     /* ---------- compose the answer from the returned passages, then validate */
     sse.write("stage", localStage("compose"));
-    const composed = await composeAnswer(state.question, state.results);
+    const stopComposePulse = pulse();
+    const composed = await composeAnswer(state.question, state.results).finally(stopComposePulse);
     sse.write(
       "stage",
       localStage("compose", {
@@ -167,7 +173,8 @@ export async function handleAsk(req: IncomingMessage, res: ServerResponse): Prom
     /* ---------------------------------------------- check the surviving claims */
     const hasClaims = composed.claims.length > 0;
     sse.write("stage", localStage("check"));
-    const checked = await runCheck(composed.claims, composed.answer);
+    const stopCheckPulse = pulse();
+    const checked = await runCheck(composed.claims, composed.answer).finally(stopCheckPulse);
     sse.write(
       "stage",
       localStage("check", {

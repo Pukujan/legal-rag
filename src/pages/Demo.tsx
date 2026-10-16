@@ -9,7 +9,7 @@ import { api, askStream } from "@/lib/api";
 import type { HealthResponse } from "@/lib/api";
 import { HIT_WORD } from "@/lib/scene";
 import { SceneGraph } from "@/lib/scene";
-import { rawValue } from "@/lib/render";
+import { provenanceLine, rawValue } from "@/lib/render";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
@@ -158,7 +158,7 @@ export default function Demo() {
         />
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={!canAsk} className="h-10 px-5">
-            {phase === "running" ? "Searching…" : "Search the opinions"}
+            {phase === "running" ? (results.length ? "Writing the answer…" : "Searching…") : "Search the opinions"}
           </Button>
           {phase === "running" ? (
             <Button type="button" variant="ghost" size="sm" onClick={() => abortRef.current?.()}>
@@ -169,7 +169,9 @@ export default function Demo() {
             {engineBlocked
               ? `The opinion collection is not ready yet (status: ${engineStatus}). Try again in a moment.`
               : phase === "running"
-                ? "Each step will light up as it finishes."
+                ? results.length
+                  ? "The opinions are on the map. The answer is being written from those passages."
+                  : "Each step will light up as it finishes."
                 : `Search engine status: ${engineStatus}.`}
           </span>
         </div>
@@ -309,7 +311,7 @@ export default function Demo() {
                       {result.provenance?.length ? (
                         <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-xs text-ink-dim">
                           {result.provenance.map((note, i) => (
-                            <li key={i}>{typeof note === "string" ? note : String((note as { source?: string }).source ?? "retrieved")}</li>
+                            <li key={i}>{provenanceLine(note)}</li>
                           ))}
                         </ul>
                       ) : null}

@@ -109,6 +109,7 @@ export function askStream(question: string, handlers: AskStreamHandlers): () => 
       const reader = res.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
+      let terminal = false;
 
       const handle = (block: string) => {
         let event = "message";
@@ -133,12 +134,14 @@ export function askStream(question: string, handlers: AskStreamHandlers): () => 
             handlers.onResult((data?.results ?? []) as RetrievalResult[]);
             break;
           case "answer":
+            terminal = true;
             handlers.onAnswer(data as FinalAnswer);
             break;
           case "log":
             if (typeof data?.id === "number") handlers.onLog(data.id);
             break;
           case "error":
+            terminal = true;
             handlers.onError({
               message: String(data?.message ?? "The search failed."),
               stage: String(data?.stage ?? "ask"),
@@ -146,6 +149,7 @@ export function askStream(question: string, handlers: AskStreamHandlers): () => 
             });
             break;
           case "done":
+            terminal = true;
             handlers.onDone();
             break;
         }
@@ -163,10 +167,21 @@ export function askStream(question: string, handlers: AskStreamHandlers): () => 
         }
       }
       if (buffer.trim()) handle(buffer);
-    } catch (err) {
-      if ((err as Error).name !== "AbortError") {
-        handlers.onError({ message: (err as Error).message, stage: "ask", status: null });
+      if (!terminal) {
+        handlers.onError({
+          message: "The connection closed before the answer finished.",
+          stage: "ask",
+          status: null,
+        });
       }
+      handlers.onDone();
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        handlers.onDone();
+        return;
+      }
+      handlers.onError({ message: (err as Error).message, stage: "ask", status: null });
+      handlers.onDone();
     }
   })();
 

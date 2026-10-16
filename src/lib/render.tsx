@@ -14,6 +14,38 @@ export function rawValue(value: unknown): string {
   return "—";
 }
 
+const SOURCE_WORD: Record<string, string> = {
+  bm25: "word match",
+  keyword: "word match",
+  lexical: "word match",
+  sparse: "word match",
+  dense: "meaning match",
+  semantic: "meaning match",
+  vector: "meaning match",
+  question_citation: "named in the question",
+  graph: "found through a citation",
+  hybrid: "combined shortlist",
+  rrf: "combined shortlist",
+  jev: "reranked",
+  jev_error: "reranker failed",
+};
+
+/** One provenance note, always a string. The engine sends objects such as {source, rank}. */
+export function provenanceLine(note: unknown): string {
+  if (typeof note === "string") return note;
+  if (!note || typeof note !== "object" || Array.isArray(note)) return rawValue(note);
+  const row = note as Record<string, unknown>;
+  const source = typeof row.source === "string" ? row.source : "";
+  const word = SOURCE_WORD[source] ?? (source ? source.replaceAll("_", " ") : "retrieved");
+  const bits = [word];
+  if (typeof row.rank === "number") bits.push(`rank ${row.rank}`);
+  if (typeof row.via === "string" && row.via) bits.push(`via ${row.via}`);
+  if (typeof row.edge === "string" && row.edge && row.edge !== "cites") bits.push(row.edge);
+  if (typeof row.direction === "string") bits.push(row.direction);
+  if (typeof row.error === "string") bits.push(row.error);
+  return bits.join(", ");
+}
+
 export interface FlatField {
   key: string;
   value: string;

@@ -60,7 +60,7 @@ export function shortDateTime(value: string | null | undefined): string {
   );
 }
 
-/** The engine's stage names, in the order they normally run. */
+/** Stages this page runs, in order. A stage left out is still shown if the engine sends it. */
 export const STAGE_ORDER = [
   "parse",
   "bm25",
@@ -68,7 +68,6 @@ export const STAGE_ORDER = [
   "hybrid",
   "graph",
   "rerank",
-  "jev",
   "compose",
   "check",
 ] as const;
