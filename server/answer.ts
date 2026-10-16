@@ -39,6 +39,11 @@ async function fetchTags(): Promise<string[]> {
   return models.map((m: any) => String(m?.name ?? "")).filter(Boolean);
 }
 
+/** Embedding models show up in `ollama list` but refuse `/api/chat`. */
+function canWrite(name: string): boolean {
+  return !/embed/i.test(name);
+}
+
 /** The model actually used for writing, or null if none can be resolved. */
 export async function resolveModel(): Promise<string | null> {
   if (cachedModel) {
@@ -50,20 +55,24 @@ export async function resolveModel(): Promise<string | null> {
   try {
     names = await fetchTags();
   } catch (err) {
-    if (wanted) return wanted;
+    if (wanted && canWrite(wanted)) return wanted;
     modelGap = WRITER_UNREACHABLE;
     console.error("[api] ollama tags unavailable:", (err as Error).message);
     return null;
   }
-  if (wanted) {
-    const match = names.find((n) => n === wanted || n.startsWith(`${wanted}:`)) ?? wanted;
-    cachedModel = match;
-    modelGap = null;
-    return match;
+  const pick = wanted
+    ? names.find((n) => n === wanted || n.startsWith(`${wanted}:`)) ?? wanted
+    : names.find((n) => canWrite(n)) ?? "";
+  if (!pick || !canWrite(pick)) {
+    cachedModel = null;
+    modelGap = names.length
+      ? "Ollama is running, but the installed model cannot write answers."
+      : WRITER_EMPTY;
+    return null;
   }
-  cachedModel = names[0] ?? null;
-  modelGap = cachedModel ? null : WRITER_EMPTY;
-  return cachedModel;
+  cachedModel = pick;
+  modelGap = null;
+  return pick;
 }
 
 function answerText(message: { content?: unknown; reasoning?: unknown } | null): string {
