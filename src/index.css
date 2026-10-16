@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-navy-950 font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    @apply bg-cyan/30 text-ink;
+  }
+}
+
+@layer components {
+  .headline {
+    @apply font-serif text-ink;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .card-surface {
+    @apply rounded-xl border border-navy-700/70 bg-navy-900/70 backdrop-blur-sm;
+  }
+
+  /* Every colour pair used in the UI is chosen to clear AA contrast on navy. */
+  .eyebrow {
+    @apply text-[0.7rem] uppercase tracking-[0.18em] text-ink-mute;
+  }
+}
+
+mark.cite {
+  @apply rounded-sm bg-cyan/15 px-0.5 text-cyan-soft;
+  box-shadow: inset 0 -1px 0 rgba(79, 214, 232, 0.5);
+}
+
+mark.cite--gold {
+  @apply bg-gold/15 text-gold;
+  box-shadow: inset 0 -1px 0 rgba(232, 192, 106, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

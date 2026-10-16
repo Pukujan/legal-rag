@@ -1,0 +1,25 @@
+# legal-rag.design-bakery.com on the Mac.
+# The Cloudflare tunnel reaches containers on study-os_edge by name.
+name: legal-rag
+
+services:
+  web:
+    container_name: legal-rag-web
+    image: legal-rag-web:local
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8098:80"
+    networks:
+      edge:
+        aliases:
+          - legal-rag-web
+
+networks:
+  edge:
+    external: true
+    name: study-os_edge
